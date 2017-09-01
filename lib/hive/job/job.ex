@@ -2,7 +2,7 @@ defmodule Hive.Job do
 
   defstruct name: "echo", function: quote do: Hive.JobList.echo("Hello", "World")
 
-  def run(%Hive.Job{name: name, function: function}) do
+  def run(%Hive.Job{name: _, function: function}) do
     try do
       {:ok, Code.eval_quoted(function)}
     rescue
