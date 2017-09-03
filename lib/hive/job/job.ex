@@ -2,23 +2,23 @@ defmodule Hive.Job do
   require Logger
 
   defstruct( 
-    name: "echo",
-    function: quote do: Hive.JobList.echo("Hello", "World")
+
+    name: "Hello_World",
+    job_name: "echo",
+    args: ["Hello", "World"],
   )
 
-  def run(%Hive.Job{name: _, function: function}) do
-    try do
-      {:ok, Code.eval_quoted(function)}
-    rescue
-      UndefinedFunctionError -> {:error, "UndefinedFunctionError"}
-    end
+  def run(%Hive.Job{name: _, job_name: job_name, args: args}) do
+    run(job_name, args)
   end
 
   def run(job_name, args \\ []) do
-    {:found, func} = get_func(Hive.JobList.__info__(:functions), job_name)
-    {:ok, apply(Hive.JobList, func, args)}
+    case get_func(Hive.JobList.__info__(:functions), job_name) do
+      {:found, func} -> {:ok, apply(Hive.JobList, func, args)}
+      :not_found -> {:error, :not_found}
+    end
   end
-  
+
 
   def is_valid(job_name) do
     functions = Hive.JobList.__info__(:functions)
@@ -36,7 +36,21 @@ defmodule Hive.Job do
     end
   end
 
-  defp get_func([], func_name) do
+  defp get_func([], _func_name) do
     :not_found
+  end
+
+  def to_json(%Hive.Job{} = job) do
+    case Poison.encode(job) do
+      {:ok, json} -> json
+      _ -> :error
+    end
+  end
+
+  def from_json(json_string) when is_bitstring(json_string) do
+    case Poison.decode(json_string, as: %Hive.Job{}) do
+      {:ok, job} -> job
+      {:error, _} -> :error
+    end
   end
 end

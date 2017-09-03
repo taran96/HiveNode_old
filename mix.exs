@@ -23,6 +23,7 @@ defmodule Hive.Mixfile do
   defp deps do
     [
       {:logger_file_backend, "~> 0.0.10"},
+      {:poison, "~> 3.1"},
     ]
   end
 end
