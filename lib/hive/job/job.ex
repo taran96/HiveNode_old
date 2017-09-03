@@ -2,6 +2,7 @@ defmodule Hive.Job do
   require Logger
 
   defstruct( 
+
     name: "Hello_World",
     job_name: "echo",
     args: ["Hello", "World"],
@@ -17,6 +18,7 @@ defmodule Hive.Job do
       :not_found -> {:error, :not_found}
     end
   end
+
 
   def is_valid(job_name) do
     functions = Hive.JobList.__info__(:functions)
