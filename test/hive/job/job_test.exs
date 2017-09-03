@@ -12,7 +12,8 @@ defmodule HiveTest.JobTest do
   test "attempt to run invalid job", %{simple_job: job} do
     invalid_func = quote do: Hive.JobList.doesNotExist_test()
 
-    invalid_job = %{job | function: invalid_func}
+    invalid_job = %{job | job_name: invalid_func}
     assert {:error, _} = Hive.Job.run(invalid_job)
   end
+
 end
