@@ -10,6 +10,7 @@ defmodule Hive.Application do
     children = [
       # Starts a worker by calling: Hive.Worker.start_link(arg)
       # {Hive.Worker, arg},
+      Hive.JobServer,
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
