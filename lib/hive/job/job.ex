@@ -37,4 +37,18 @@ defmodule Hive.Job do
   defp get_func([], _func_name) do
     :not_found
   end
+
+  def to_json(%Hive.Job{} = job) do
+    case Poison.encode(job) do
+      {:ok, json} -> json
+      _ -> :error
+    end
+  end
+
+  def from_json(json_string) when is_bitstring(json_string) do
+    case Poison.decode(json_string, as: %Hive.Job{}) do
+      {:ok, job} -> job
+      {:error, _} -> :error
+    end
+  end
 end
