@@ -24,3 +24,7 @@ log/
 
 # Mix lock
 *.lock
+
+# Vim
+*.swp
+*.swo

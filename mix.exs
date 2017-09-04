@@ -14,17 +14,16 @@ defmodule Hive.Mixfile do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {Hive.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:logger_file_backend, "~> 0.0.10"},
       {:poison, "~> 3.1"},
-      {:amqp, "~> 0.3.0"},
-      {:uuid, "~> 1.1"},
-      {:logger_file_backend, "~> 0.0.10"}, 
     ]
   end
 end
