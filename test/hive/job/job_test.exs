@@ -31,4 +31,17 @@ defmodule HiveTest.JobTest do
     json_string = Hive.Job.to_json(job)
     assert Poison.decode!(json_string, as: %Hive.Job{}) == job
   end
+
+  test "decoding json job with extra attributes", %{simple_job: job} do
+    json_string = 
+      ~s({"name": "Hello_World", "job_name": "echo", "args": ["Hello", "World"],
+          "extra_field": 4})
+    assert Hive.Job.from_json(json_string) == job
+  end
+
+  test "decoding json job with missing attributes", %{simple_job: job} do
+    json_string =
+      ~s({"job_name": "echo", "args": ["Hello", "World"]})
+    assert Hive.Job.from_json(json_string) == job
+  end
 end

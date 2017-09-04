@@ -1,6 +1,6 @@
 defmodule HiveTest.JobServerTest do
   use ExUnit.Case
-
+  doctest Hive.JobServer
   setup do 
     {:ok, jobServer} = start_supervised(Hive.JobServer)
     %{job_server: jobServer}
