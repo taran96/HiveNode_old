@@ -38,7 +38,11 @@ defmodule Hive.JobServer do
   """
   def handle_call({:run, job_name, args}, _from, pids) do
     if Hive.Job.is_valid(job_name) do
-      {:reply, Hive.Job.run(job_name, args), pids}
+      job_pid = Task.Supervisor.async(
+        Hive.Task.Supervisor, 
+        fn -> Hive.Job.run(job_name, args) end
+      )
+      {:reply, Task.await(job_pid), pids}
     else
       {:reply, {:error, :invalid_job}, pids}
     end
