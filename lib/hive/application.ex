@@ -11,6 +11,7 @@ defmodule Hive.Application do
       # Starts a worker by calling: Hive.Worker.start_link(arg)
       # {Hive.Worker, arg},
       {Hive.JobServerSupervisor, [name: Hive.JobServerSupervisor]},
+      {Task.Supervisor, [name: Hive.Task.Supervisor]},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
