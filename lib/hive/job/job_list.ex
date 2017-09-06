@@ -3,6 +3,7 @@ defmodule Hive.JobList do
   This module contains a list of current possible jobs
   """
 
+
   @doc """
   This function prints the two arguments with a space between them.
   It is mainly for testing purposes and is required for unit tests.

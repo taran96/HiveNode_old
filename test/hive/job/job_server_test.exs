@@ -24,6 +24,4 @@ defmodule HiveTest.JobServerTest do
     refute Process.whereis(Hive.JobServer) == nil
   end
 
-
-
 end
