@@ -10,12 +10,13 @@ defmodule Hive.Application do
     children = [
       # Starts a worker by calling: Hive.Worker.start_link(arg)
       # {Hive.Worker, arg},
-      Hive.JobServer,
+      {Hive.JobServerSupervisor, [name: Hive.JobServerSupervisor]},
+      {Task.Supervisor, [name: :job_supervisor]},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Hive.Supervisor]
+    opts = [strategy: :one_for_one, name: Hive.Application]
     Supervisor.start_link(children, opts)
   end
 end
