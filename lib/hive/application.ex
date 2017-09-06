@@ -1,6 +1,4 @@
 defmodule Hive.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
@@ -8,14 +6,11 @@ defmodule Hive.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Starts a worker by calling: Hive.Worker.start_link(arg)
-      # {Hive.Worker, arg},
-      Hive.JobServer,
+      {Hive.JobServerSupervisor, [name: Hive.JobServerSupervisor]},
+      {Task.Supervisor, [name: :job_supervisor]},
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Hive.Supervisor]
+    opts = [strategy: :one_for_one, name: Hive.Application]
     Supervisor.start_link(children, opts)
   end
 end

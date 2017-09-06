@@ -14,4 +14,14 @@ defmodule HiveTest.JobServerTest do
     assert {:error, _ } = Hive.JobServer.run(pid, "Hive.JobServer")
   end
 
+  test "test a crashing JobServer with supervisor" do
+    Process.whereis(Hive.Application)
+      |> Supervisor.stop
+    Hive.JobServerSupervisor.start_link()
+    server_pid = Process.whereis(Hive.JobServer)
+    Process.exit(server_pid, :abnormal)
+    Process.sleep(1000)
+    refute Process.whereis(Hive.JobServer) == nil
+  end
+
 end
