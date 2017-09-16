@@ -25,6 +25,7 @@ defmodule Hive.Mixfile do
       {:logger_file_backend, "~> 0.0.10"},
       {:poison, "~> 3.1"},
       {:nerves_uart, "~> 0.1"},
+      {:amqp, "~> 0.3.0"},
     ]
   end
 end
