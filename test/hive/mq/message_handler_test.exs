@@ -11,17 +11,6 @@ defmodule HiveTest.MQTest.MessageHandlerTest do
       _ -> :ok
     end
     # All JSON strings
-    greet = %Hive.MQ.Message.Greet{
-      routing_key: "hive.node.test_node",
-      hostname: "localhost",
-      ip_address: "127.0.0.1",
-      exchange: "hive_exchange",
-      queue: "test_queue",
-      os: "linux",
-      os_version: "Ubuntu 16.04",
-      purpose: "test machine",
-      reply: true
-    }
     os_version = case :os.version do
       {maj, min, _} -> "#{maj}.#{min}"
       version -> inspect version
@@ -111,5 +100,17 @@ defmodule HiveTest.MQTest.MessageHandlerTest do
   test "consume greet message with noreply", %{greet: greet} do
     assert :noreply =
       Hive.MQ.MessageHandler.consume({:greet, %{greet | reply: false}}, 0)
+  end
+
+  test "consume run_job json", %{run_job_json: json} do
+    assert :ok == Hive.MQ.MessageHandler.consume("run_job+++++++++" <> json, :undefined, %{})
+  end
+
+  test "consume job_return_value json",  %{job_return_value_json: json} do
+    assert :ok == Hive.MQ.MessageHandler.consume("job_return_value" <> json, :undefined, %{})
+  end
+
+  test "consume greet json", %{greet_json: json} do
+    assert :ok == Hive.MQ.MessageHandler.consume("greet+++++++++++" <> json, :undefined, %{})
   end
 end

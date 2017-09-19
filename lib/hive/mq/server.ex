@@ -22,7 +22,8 @@ defmodule Hive.MQ.Server do
   connection is established then a unique queue is created and binded to
   the `hive_exchange` with a routing key drived from the node name. Lastly
   an entry is added to the `Hive.MQ.NodeAgent`, which contains information
-  of the current node.
+  of the current node. After the information is added then a broadcast
+  message to all the other nodes is sent containing a greet message.
   """
   def init(mq_settings) do
     {:ok, chan} = rabbitmq_connect(mq_settings)
@@ -44,6 +45,10 @@ defmodule Hive.MQ.Server do
           Hive.MQ.NodeAgent.registerSelf(
             Hive.MQ.NodeAgent, "hive_exchange", 
             queue, "hive.node." <> name)
+          payload = Hive.MQ.NodeAgent.getSelf(Hive.MQ.NodeAgent)
+                 |> Poison.encode!()
+                 |> (&("greet+++++++++++" <> &1)).()
+          AMQP.Basic.publish(chan, "hive_exchange", "hive.node.#", payload)
           {:ok, chan}
         {:error, errmsg} ->
           Logger.error inspect errmsg
