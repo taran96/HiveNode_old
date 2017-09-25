@@ -33,7 +33,10 @@ defmodule Hive.MQ.MessageHandler do
         msg 
         |> Poison.decode!(as: %Hive.MQ.Message.JobReturnValue{})
         |> (&consume({:job_return_value, &1})).()
-
+      "greet" <> << _::size(88) >> <> msg when is_bitstring(payload) ->
+        msg
+        |> Poison.decode!(as: %Hive.MQ.Message.Greet{})
+        |> (&consume({:greet, &1},0)).()
       _ -> 
         Logger.warn "Unknown message format: #{payload}"
         :noreply

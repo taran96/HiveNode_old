@@ -112,4 +112,17 @@ defmodule HiveTest.MQTest.MessageHandlerTest do
     assert :noreply =
       Hive.MQ.MessageHandler.consume({:greet, %{greet | reply: false}}, 0)
   end
+
+  test "consume job_return_value json", %{job_return_value_json: json} do
+    assert :ok = Hive.MQ.MessageHandler.consume("job_return_value" <> json, :undefined, %{})
+  end
+
+  test "consume run_job json", %{run_job_json: json} do
+    assert :ok = Hive.MQ.MessageHandler.consume("run_job+++++++++" <> json, :undefined, %{})
+  end
+
+  test "consume greet json", %{greet_json: json} do
+    assert :ok = Hive.MQ.MessageHandler.consume("greet+++++++++++" <> json, :undefined, %{})
+  end
+
 end
