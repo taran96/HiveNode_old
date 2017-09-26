@@ -22,7 +22,8 @@ defmodule Hive.MQ.Server do
   connection is established then a unique queue is created and binded to
   the `hive_exchange` with a routing key drived from the node name. Lastly
   an entry is added to the `Hive.MQ.NodeAgent`, which contains information
-  of the current node.
+  of the current node. After the information is added then a broadcast
+  message to all the other nodes is sent containing a greet message.
   """
   def init(mq_settings) do
     {:ok, chan} = rabbitmq_connect(mq_settings)
@@ -38,12 +39,21 @@ defmodule Hive.MQ.Server do
           Process.monitor(chan.pid)
           AMQP.Basic.qos(chan, prefetch_count: 10)
           {:ok, %{queue: queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
+          {:ok, %{queue: broadcast_queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
           AMQP.Exchange.declare(chan, "hive_exchange", :topic)
+          AMQP.Exchange.declare(chan, "hive_broadcast", :fanout)
           AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.node." <> name)
+          AMQP.Queue.bind(chan, broadcast_queue, "hive_broadcast")
           {:ok, _consumer_tag} = AMQP.Basic.consume(chan, queue)
+          {:ok, _consumer_tag} = AMQP.Basic.consume(chan, broadcast_queue)
           Hive.MQ.NodeAgent.registerSelf(
             Hive.MQ.NodeAgent, "hive_exchange", 
             queue, "hive.node." <> name)
+          payload = Hive.MQ.NodeAgent.getSelf(Hive.MQ.NodeAgent)
+                    |> Map.put(:reply, true)
+                    |> Poison.encode!()
+                    |> (&("greet+++++++++++" <> &1)).()
+          AMQP.Basic.publish(chan, "hive_broadcast", "hive.node." <> name, payload)
           {:ok, chan}
         {:error, errmsg} ->
           Logger.error inspect errmsg

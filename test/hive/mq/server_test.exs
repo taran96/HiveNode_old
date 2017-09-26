@@ -14,17 +14,25 @@ defmodule HiveTest.MQTest.ServerTest do
       pid -> pid 
     end
 
+    init_server = &(Hive.MQ.Server.start_link([
+      connection_string: Application.get_env(:hive, :connection_string, "amqp://localhost:5672"),
+      node_name: Application.get_env(:hive, :node_name, &2),
+      name: &1,
+    ]))
     {:ok, conn} = AMQP.Connection.open(Application.get_env(:hive, :connection_string))
     {:ok, chan} = AMQP.Channel.open(conn)
     {:ok, %{queue: queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
+    {:ok, %{queue: broadcast_queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
     AMQP.Basic.qos(chan, prefected_count: 10)
     AMQP.Exchange.declare(chan, "hive_exchange", :topic)
+    AMQP.Exchange.declare(chan, "hive_broadcast", :fanout)
     AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.node.test_node")
+    AMQP.Queue.bind(chan, broadcast_queue, "hive_broadcast")
     AMQP.Basic.consume(chan, queue)
     receive do
       {:basic_consume_ok, _} -> :ok
     end
-    %{server: server_pid, client_channel: chan, client_queue: queue}
+    %{server: server_pid, client_channel: chan, client_queue: queue, broadcast_queue: broadcast_queue, init_server: init_server}
   end
 
   test "check for message ack", %{client_channel: chan, client_queue: queue, server: pid} do
@@ -44,5 +52,11 @@ defmodule HiveTest.MQTest.ServerTest do
   test "get function", %{server: pid} do
     refute nil == Hive.MQ.Server.get(pid, :channel)
     assert nil == Hive.MQ.Server.get(pid, :doesnotexist)
+  end
+
+  test "check if new nodes broadcast message", %{client_channel: chan, client_queue: queue, broadcast_queue: broadcast_queue, init_server: init_server} do
+    {:ok, server} = init_server.(:another_server, "test_nde")
+    AMQP.Basic.consume(chan, broadcast_queue)
+    assert_receive {:basic_deliver, _, _}, 5_000
   end
 end

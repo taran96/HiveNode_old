@@ -9,7 +9,7 @@ defmodule Hive.Mixfile do
       start_permanent: Mix.env == :prod,
       deps: deps(),
       name: "Hive",
-      source_url: "https://github.com/taran/hive",
+      source_url: "https://github.com/taran96/hive",
       docs: [main: "Hive",
              extras: ["README.md"]],
     ]
@@ -31,7 +31,7 @@ defmodule Hive.Mixfile do
       {:nerves_uart, "~> 0.1"},
       {:amqp, "~> 0.3.0"},
       {:distillery, "~> 1.5.1", runtime: false},
-      {:ex_doc, "~> 0.16", only: :dev,  runtime: false},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false},
     ]
   end
 end
