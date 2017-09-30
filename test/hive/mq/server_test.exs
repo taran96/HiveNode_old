@@ -22,17 +22,15 @@ defmodule HiveTest.MQTest.ServerTest do
     {:ok, conn} = AMQP.Connection.open(Application.get_env(:hive, :connection_string))
     {:ok, chan} = AMQP.Channel.open(conn)
     {:ok, %{queue: queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
-    {:ok, %{queue: broadcast_queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
     AMQP.Basic.qos(chan, prefected_count: 10)
     AMQP.Exchange.declare(chan, "hive_exchange", :topic)
-    AMQP.Exchange.declare(chan, "hive_broadcast", :fanout)
+    AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.broadcast")
     AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.node.test_node")
-    AMQP.Queue.bind(chan, broadcast_queue, "hive_broadcast")
     AMQP.Basic.consume(chan, queue)
     receive do
       {:basic_consume_ok, _} -> :ok
     end
-    %{server: server_pid, client_channel: chan, client_queue: queue, broadcast_queue: broadcast_queue, init_server: init_server}
+    %{server: server_pid, client_channel: chan, client_queue: queue, init_server: init_server}
   end
 
   test "check for message ack", %{client_channel: chan, client_queue: queue, server: pid} do
@@ -54,9 +52,11 @@ defmodule HiveTest.MQTest.ServerTest do
     assert nil == Hive.MQ.Server.get(pid, :doesnotexist)
   end
 
-  test "check if new nodes broadcast message", %{client_channel: chan, client_queue: queue, broadcast_queue: broadcast_queue, init_server: init_server} do
-    {:ok, server} = init_server.(:another_server, "test_nde")
-    AMQP.Basic.consume(chan, broadcast_queue)
-    assert_receive {:basic_deliver, _, _}, 5_000
+  test "check if new nodes broadcast message", %{client_channel: chan, client_queue: queue, init_server: init_server} do
+    Application.stop(:normal)
+    {:ok, server} = init_server.(:another_server, "test_node")
+    AMQP.Basic.consume(chan, queue)
+    assert_receive {:basic_deliver, _payload, %{delivery_tag: _tag, reply_to: routing_key}}
+    assert routing_key == "hive.node." <> Application.get_env(:hive, :node_name)
   end
 end
