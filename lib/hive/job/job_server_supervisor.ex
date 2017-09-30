@@ -10,6 +10,7 @@ defmodule Hive.JobServerSupervisor do
       {Hive.JobServer, [name: Hive.JobServer]},
     ]
 
+
     Supervisor.init(children, strategy: :one_for_one)
   end
 end
