@@ -8,11 +8,9 @@ defmodule Hive.JobServer do
 
 
   def start_link(opts \\ []) do
-    pid = GenServer.start_link(__MODULE__, :ok, opts)
-    Logger.info "Started " <> inspect(__MODULE__) <> " " <> inspect(pid)
-    pid
+    Logger.info "Starting #{__MODULE__}"
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
-
 
   def init(:ok) do
     pids = %{}

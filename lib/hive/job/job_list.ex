@@ -26,7 +26,7 @@ defmodule Hive.JobList do
   """
   def write_to_tty(tty, string) do
     nerves_pid = start_nerves_uart()
-    case Nerves.UART.open(nerves_pid, tty) do
+    case Nerves.UART.open(nerves_pid, tty, speed: 9600, active: false) do
       :ok ->
         Nerves.UART.write(nerves_pid,  string)
         Nerves.UART.close(nerves_pid)
