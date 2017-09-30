@@ -39,21 +39,18 @@ defmodule Hive.MQ.Server do
           Process.monitor(chan.pid)
           AMQP.Basic.qos(chan, prefetch_count: 10)
           {:ok, %{queue: queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
-          {:ok, %{queue: broadcast_queue}} = AMQP.Queue.declare(chan, "", exclusive: true)
           AMQP.Exchange.declare(chan, "hive_exchange", :topic)
-          AMQP.Exchange.declare(chan, "hive_broadcast", :fanout)
+          AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.broadcast")
           AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.node." <> name)
-          AMQP.Queue.bind(chan, broadcast_queue, "hive_broadcast")
           {:ok, _consumer_tag} = AMQP.Basic.consume(chan, queue)
-          {:ok, _consumer_tag} = AMQP.Basic.consume(chan, broadcast_queue)
           Hive.MQ.NodeAgent.registerSelf(
             Hive.MQ.NodeAgent, "hive_exchange", 
             queue, "hive.node." <> name)
-          payload = Hive.MQ.NodeAgent.getSelf(Hive.MQ.NodeAgent)
+          json = Hive.MQ.NodeAgent.getSelf(Hive.MQ.NodeAgent)
                     |> Map.put(:reply, true)
                     |> Poison.encode!()
-                    |> (&("greet+++++++++++" <> &1)).()
-          AMQP.Basic.publish(chan, "hive_broadcast", "hive.node." <> name, payload)
+          payload =  "greet+++++++++++" <> json
+          AMQP.Basic.publish(chan, "hive_exchange", "hive.broadcast", payload, reply_to: "hive.node." <> name)
           {:ok, chan}
         {:error, errmsg} ->
           Logger.error inspect errmsg
@@ -112,8 +109,15 @@ defmodule Hive.MQ.Server do
     RabbitMQ server.
     """
     def handle_info({:basic_deliver, payload, %{delivery_tag: tag, reply_to: routing_key}}, state) do
-      Logger.debug inspect(payload)
-      Process.monitor(spawn fn -> Hive.MQ.MessageHandler.consume(payload, routing_key, state) end)
+      cleaned_payload = case payload do
+        "\"" <> _rest ->
+          payload
+          |> String.replace("\\\"", "\"")
+          |> String.replace(~r/^"|"$/, "")
+        _ -> payload
+      end
+      Logger.debug inspect(cleaned_payload)
+      Process.monitor(spawn fn -> Hive.MQ.MessageHandler.consume(cleaned_payload, routing_key, state) end)
       AMQP.Basic.ack(Map.get(state, :channel), tag)
       {:noreply, state}
     end
