@@ -1,4 +1,4 @@
-defmodule Hive.MQ.ServerSupervisor do
+defmodule HiveNode.MQ.ServerSupervisor do
   use Supervisor
 
   require Logger
@@ -13,12 +13,12 @@ defmodule Hive.MQ.ServerSupervisor do
 
   def init(:ok) do
     children = [
-      {Hive.MQ.Server, [
+      {HiveNode.MQ.Server, [
         connection_string: Application.get_env(
-          :hive,
+          :hivenode,
           :connection_string, "amqp://guest:guest@localhost:5672"),
-        node_name: Application.get_env(:hive, :node_name, "no_name"),
-        name: Hive.MQ.Server]},
+        node_name: Application.get_env(:hivenode, :node_name, "no_name"),
+        name: HiveNode.MQ.Server]},
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

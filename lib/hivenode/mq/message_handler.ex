@@ -1,4 +1,4 @@
-defmodule Hive.MQ.MessageHandler do
+defmodule HiveNode.MQ.MessageHandler do
   require Logger
 
   @moduledoc """
@@ -27,15 +27,15 @@ defmodule Hive.MQ.MessageHandler do
   def consume(payload, routing_key, state) do
     reply = case payload do
       "run_job" <> << _::size(72) >> <> msg when is_bitstring(payload) ->
-        job = Poison.decode!(msg, as: %Hive.MQ.Message.RunJob{})
+        job = Poison.decode!(msg, as: %HiveNode.MQ.Message.RunJob{})
         consume({:run_job, job}, 0)
       "job_return_value" <> msg when is_bitstring(payload) ->
         msg 
-        |> Poison.decode!(as: %Hive.MQ.Message.JobReturnValue{})
+        |> Poison.decode!(as: %HiveNode.MQ.Message.JobReturnValue{})
         |> (&consume({:job_return_value, &1})).()
       "greet" <> << _::size(88) >> <> msg when is_bitstring(payload) ->
         msg
-        |> Poison.decode!(as: %Hive.MQ.Message.Greet{})
+        |> Poison.decode!(as: %HiveNode.MQ.Message.Greet{})
         |> (&consume({:greet, &1}, 0)).()
       _ -> 
         Logger.warn "Unknown message format: #{payload}"
@@ -55,20 +55,20 @@ defmodule Hive.MQ.MessageHandler do
 
   @doc """
   This function handles the `run_job` message type. It runs the job using
-  the `Hive.JobServer`. If requested it returns the function's return
+  the `HiveNode.JobServer`. If requested it returns the function's return
   value. The return value is in the json of a `job_return_value` message.
   If no return is requested then the return value is `:noreply`.
   """ 
   def consume({:run_job, job}, count) do
-    case Process.whereis(Hive.JobServer) do
+    case Process.whereis(HiveNode.JobServer) do
       nil when count < 5 -> 
         Process.sleep(1000)
         consume({:run_job, job}, count + 1)
       _ -> 
-        {status, return_val} = Hive.JobServer.run(Hive.JobServer, job.name, job.args)
+        {status, return_val} = HiveNode.JobServer.run(HiveNode.JobServer, job.name, job.args)
         cond do
           status == :ok && job.send_return_value -> 
-            %Hive.MQ.Message.JobReturnValue{status: status, return_value: inspect(return_val), id: job.id}
+            %HiveNode.MQ.Message.JobReturnValue{status: status, return_value: inspect(return_val), id: job.id}
             |> Poison.encode!()
             |> addType(:job_return_value)
 
@@ -85,14 +85,14 @@ defmodule Hive.MQ.MessageHandler do
   If no reply is needed, then `:noreply` is returned.
   """
   def consume({:greet, greeting}, count) do
-    if Process.whereis(Hive.MQ.NodeAgent) == nil && count < 5 do  
+    if Process.whereis(HiveNode.MQ.NodeAgent) == nil && count < 5 do  
       Process.sleep(1000)
       consume({:greet, greeting}, count + 1)
     else 
-      Hive.MQ.NodeAgent.add(Hive.MQ.NodeAgent, greeting)
+      HiveNode.MQ.NodeAgent.add(HiveNode.MQ.NodeAgent, greeting)
       {:ok, hostname} = :inet.gethostname
       if greeting.reply do
-        case Hive.MQ.NodeAgent.get(Hive.MQ.NodeAgent, hostname) do
+        case HiveNode.MQ.NodeAgent.get(HiveNode.MQ.NodeAgent, hostname) do
           :notfound -> :noreply
           greet -> 
             greet

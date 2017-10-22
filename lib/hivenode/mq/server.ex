@@ -1,4 +1,4 @@
-defmodule Hive.MQ.Server do
+defmodule HiveNode.MQ.Server do
   use GenServer
   require Logger
 
@@ -21,7 +21,7 @@ defmodule Hive.MQ.Server do
   It will try again and again until the connection is made. When the 
   connection is established then a unique queue is created and binded to
   the `hive_exchange` with a routing key drived from the node name. Lastly
-  an entry is added to the `Hive.MQ.NodeAgent`, which contains information
+  an entry is added to the `HiveNode.MQ.NodeAgent`, which contains information
   of the current node. After the information is added then a broadcast
   message to all the other nodes is sent containing a greet message.
   """
@@ -43,10 +43,10 @@ defmodule Hive.MQ.Server do
           AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.broadcast")
           AMQP.Queue.bind(chan, queue, "hive_exchange", routing_key: "hive.node." <> name)
           {:ok, _consumer_tag} = AMQP.Basic.consume(chan, queue)
-          Hive.MQ.NodeAgent.registerSelf(
-            Hive.MQ.NodeAgent, "hive_exchange", 
+          HiveNode.MQ.NodeAgent.registerSelf(
+            HiveNode.MQ.NodeAgent, "hive_exchange", 
             queue, "hive.node." <> name)
-          json = Hive.MQ.NodeAgent.getSelf(Hive.MQ.NodeAgent)
+          json = HiveNode.MQ.NodeAgent.getSelf(HiveNode.MQ.NodeAgent)
                     |> Map.put(:reply, true)
                     |> Poison.encode!()
           payload =  "greet+++++++++++" <> json
@@ -105,7 +105,7 @@ defmodule Hive.MQ.Server do
     @doc """
     This handler receives any message from RabbitMQ Server. It creates a
     monitor for consuming the message. All messages are sent to the 
-    `Hive.MQ.MessageHandler`. Lastly an acknowledgement is sent back the
+    `HiveNode.MQ.MessageHandler`. Lastly an acknowledgement is sent back the
     RabbitMQ server.
     """
     def handle_info({:basic_deliver, payload, %{delivery_tag: tag, reply_to: routing_key}}, state) do
@@ -117,7 +117,7 @@ defmodule Hive.MQ.Server do
         _ -> payload
       end
       Logger.debug inspect(cleaned_payload)
-      Process.monitor(spawn fn -> Hive.MQ.MessageHandler.consume(cleaned_payload, routing_key, state) end)
+      Process.monitor(spawn fn -> HiveNode.MQ.MessageHandler.consume(cleaned_payload, routing_key, state) end)
       AMQP.Basic.ack(Map.get(state, :channel), tag)
       {:noreply, state}
     end
@@ -159,7 +159,7 @@ defmodule Hive.MQ.Server do
     This handler logs any unrecognized message.
     """
     def handle_info(msg, state) do
-      Logger.warn "Unhandled message in Hive.MQServer"
+      Logger.warn "Unhandled message in HiveNode.MQServer"
       Logger.warn inspect(msg)
       {:noreply, state}
     end

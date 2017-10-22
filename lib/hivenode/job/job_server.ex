@@ -1,4 +1,4 @@
-defmodule Hive.JobServer do 
+defmodule HiveNode.JobServer do 
   @moduledoc """
   This module is responsible to handle any request to run a job
   """
@@ -22,8 +22,8 @@ defmodule Hive.JobServer do
   This function is used to run a job. It runs the job synchronously, so it will block the caller. The function also returns the value of the job.
 
   A job is executed as such:
-      iex> {:ok, pid} = Hive.JobServer.start_link()
-      iex> Hive.JobServer.run(pid, "echo", ["Hello", "World"])
+      iex> {:ok, pid} = HiveNode.JobServer.start_link()
+      iex> HiveNode.JobServer.run(pid, "echo", ["Hello", "World"])
       {:ok, {:ok, "Hello World"}} 
   """
   def run(server, job_name, args \\ []) when is_bitstring(job_name) do
@@ -35,10 +35,10 @@ defmodule Hive.JobServer do
   This call handler runs the requested job and returns the return value of the function.
   """
   def handle_call({:run, job_name, args}, _from, pids) do
-    if Hive.Job.is_valid(job_name) do
+    if HiveNode.Job.is_valid(job_name) do
       job_pid = Task.Supervisor.async(
         :job_supervisor, 
-        fn -> Hive.Job.run(job_name, args) end
+        fn -> HiveNode.Job.run(job_name, args) end
       )
       {:reply, Task.await(job_pid), pids}
     else

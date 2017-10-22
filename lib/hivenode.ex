@@ -1,4 +1,4 @@
-defmodule Hive do
+defmodule HiveNode do
   @moduledoc """
   Documentation for Hive.
   """

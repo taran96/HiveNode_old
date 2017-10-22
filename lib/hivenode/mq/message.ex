@@ -1,4 +1,4 @@
-defmodule Hive.MQ.Message do
+defmodule HiveNode.MQ.Message do
   @moduledoc """
   This module represents all types of messages
   """

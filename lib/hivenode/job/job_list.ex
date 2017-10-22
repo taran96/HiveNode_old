@@ -1,4 +1,4 @@
-defmodule Hive.JobList do
+defmodule HiveNode.JobList do
   @moduledoc """
   This module contains a list of current possible jobs
   """

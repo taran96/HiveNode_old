@@ -1,11 +1,11 @@
-defmodule HiveTest.JobServerTest do
+defmodule HiveNodeTest.JobServerTest do
   use ExUnit.Case
   setup do 
-    {:ok, jobServer} = case Process.whereis(Hive.JobServer) do
-      nil -> start_supervised(Hive.JobServer)
+    {:ok, jobServer} = case Process.whereis(HiveNode.JobServer) do
+      nil -> start_supervised(HiveNode.JobServer)
       _ -> 
-        Hive.JobServerSupervisor.start_link(name: Hive.JobServerSupervisor)
-        {:ok, Process.whereis(Hive.JobServer)}
+        HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)
+        {:ok, Process.whereis(HiveNode.JobServer)}
     end
     if Process.whereis(:job_supervisor) == nil do
       Task.Supervisor.start_link(name: :job_supervisor)
@@ -17,16 +17,16 @@ defmodule HiveTest.JobServerTest do
   end
 
   test "run a job", %{job_server: pid} do
-    assert {:ok, _ } = Hive.JobServer.run(pid, "echo", ["hello", "world"])
+    assert {:ok, _ } = HiveNode.JobServer.run(pid, "echo", ["hello", "world"])
   end
 
   test "run an invalid job", %{job_server: pid} do
-    assert {:error, _ } = Hive.JobServer.run(pid, "Hive.JobServer")
+    assert {:error, _ } = HiveNode.JobServer.run(pid, "HiveNode.JobServer")
   end
 
   test "test a crashing JobServer with supervisor", %{job_server: server_pid} do
     Process.exit(server_pid, :abnormal)
-    refute Process.whereis(Hive.JobServer) == nil
+    refute Process.whereis(HiveNode.JobServer) == nil
   end
 
 end

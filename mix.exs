@@ -1,16 +1,16 @@
-defmodule Hive.Mixfile do
+defmodule HiveNode.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :hive,
-      version: "0.1.0",
+      app: :hivenode,
+      version: "0.2.0",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps(),
-      name: "Hive",
-      source_url: "https://github.com/taran96/hive",
-      docs: [main: "Hive",
+      name: "HiveNode",
+      source_url: "https://github.com/taran96/hivenode",
+      docs: [main: "HiveNode",
              extras: ["README.md"]],
     ]
   end
@@ -19,7 +19,7 @@ defmodule Hive.Mixfile do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Hive.Application, []}
+      mod: {HiveNode.Application, []}
     ]
   end
 

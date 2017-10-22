@@ -1,4 +1,4 @@
-defmodule Hive.MQ.NodeAgent do
+defmodule HiveNode.MQ.NodeAgent do
   use Agent
   require Logger
 
@@ -16,12 +16,12 @@ defmodule Hive.MQ.NodeAgent do
 
   @doc """
   This endpoint is used to add a node to the agent. This function only
-  accepts a `%Hive.MQ.Message.Greet{}`, otherwise it returns 
+  accepts a `%HiveNode.MQ.Message.Greet{}`, otherwise it returns 
   `{:error, :wrngmsg}`. If the entry of the same hostname exists then
   the existing entry is updated. It returns `:ok` on successful additions.
   """
   def add(pid, greet_msg) do
-    if greet_msg.__struct__ == Hive.MQ.Message.Greet do
+    if greet_msg.__struct__ == HiveNode.MQ.Message.Greet do
       %{hostname: hostname} = greet_msg
       node_info = greet_msg
                   |> Map.from_struct
@@ -36,7 +36,7 @@ defmodule Hive.MQ.NodeAgent do
 
   @doc """
   This endpoint gets the requested node based on the node's hostname. A map 
-  containing similar fields to the `Hive.MQ.Message.Greet` struct is returned
+  containing similar fields to the `HiveNode.MQ.Message.Greet` struct is returned
   if found. If the hostname is not found then `:notfound` is returned.
   """
   def get(pid, key) do
@@ -51,7 +51,7 @@ defmodule Hive.MQ.NodeAgent do
 
   
   defp getIPAddress() do
-    interface = Application.get_env(:hive, :interface, "lo")
+    interface = Application.get_env(:hivenode, :interface, "lo")
     {:ok, lst} = :inet.getifaddrs
     getIPAddress(interface, lst)
   end
@@ -85,7 +85,7 @@ defmodule Hive.MQ.NodeAgent do
       type -> inspect type
     end
     {:ok, hostname} = :inet.gethostname
-    greet = %Hive.MQ.Message.Greet{
+    greet = %HiveNode.MQ.Message.Greet{
       routing_key: routing_key,
       hostname: hostname,
       ip_address: getIPAddress(),
@@ -93,7 +93,7 @@ defmodule Hive.MQ.NodeAgent do
       queue: queue,
       os: os,
       os_version: os_version,
-      purpose: Application.get_env(:hive, :purpose, "UNKNOWN"),
+      purpose: Application.get_env(:hivenode, :purpose, "UNKNOWN"),
     }
     add(pid, greet)
   end

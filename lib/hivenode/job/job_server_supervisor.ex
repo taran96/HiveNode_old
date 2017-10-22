@@ -1,4 +1,4 @@
-defmodule Hive.JobServerSupervisor do
+defmodule HiveNode.JobServerSupervisor do
   use Supervisor
 
   def start_link(opts \\ []) do
@@ -7,7 +7,7 @@ defmodule Hive.JobServerSupervisor do
 
   def init(:ok) do
     children = [
-      {Hive.JobServer, [name: Hive.JobServer]},
+      {HiveNode.JobServer, [name: HiveNode.JobServer]},
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
