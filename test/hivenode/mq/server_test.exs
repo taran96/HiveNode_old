@@ -54,7 +54,7 @@ defmodule HiveNodeTest.MQTest.ServerTest do
 
   test "check if new nodes broadcast message", %{client_channel: chan, client_queue: queue, init_server: init_server} do
     Application.stop(:normal)
-    {:ok, server} = init_server.(:another_server, "test_node")
+    {:ok, _server} = init_server.(:another_server, "test_node")
     AMQP.Basic.consume(chan, queue)
     assert_receive {:basic_deliver, _payload, %{delivery_tag: _tag, reply_to: routing_key}}
     assert routing_key == "hive.node." <> Application.get_env(:hivenode, :node_name)
