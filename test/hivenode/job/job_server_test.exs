@@ -1,17 +1,10 @@
 defmodule HiveNodeTest.JobServerTest do
   use ExUnit.Case
   setup do 
-    {:ok, jobServer} = case Process.whereis(HiveNode.JobServer) do
-      nil -> start_supervised(HiveNode.JobServer)
-      _ -> 
-        HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)
-        {:ok, Process.whereis(HiveNode.JobServer)}
-    end
+    HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)
+    jobServer = Process.whereis(HiveNode.JobServer)
     if Process.whereis(:job_supervisor) == nil do
       Task.Supervisor.start_link(name: :job_supervisor)
-    end
-    if jobServer == nil do
-      assert False, "job_server not started"
     end
     %{job_server: jobServer}
   end

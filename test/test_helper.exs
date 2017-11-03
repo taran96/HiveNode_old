@@ -3,7 +3,7 @@
 #   [ environment_variable: :test_tag ]
 env_vars = [
   echo_server_host: :echo_server_required,
-  connection_string: :rmq_required,
+  connection_string: :rabbit_mq_required,
 ]
 
 

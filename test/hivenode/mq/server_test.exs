@@ -1,7 +1,9 @@
 defmodule HiveNodeTest.MQTest.ServerTest do
   use ExUnit.Case
+  @moduletag :rabbit_mq_required
 
   setup do
+    HiveNode.MQ.NodeAgent.start_link(name: HiveNode.MQ.NodeAgent)
     Process.sleep(100)
     if Process.whereis(HiveNode.JobServer) == nil do
       HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)

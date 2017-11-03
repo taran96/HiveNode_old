@@ -12,6 +12,7 @@ defmodule HiveNode.Mixfile do
       source_url: "https://github.com/taran96/hivenode",
       docs: [main: "HiveNode",
              extras: ["README.md"]],
+      aliases: [test: "test --no-start"],
     ]
   end
 

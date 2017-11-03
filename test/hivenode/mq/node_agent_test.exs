@@ -18,6 +18,8 @@ defmodule HiveNodeTest.MQTest.NodeAgentTest do
 
   test "getting node", %{agent: agent} do
     {:ok, hostname} = :inet.gethostname
+    HiveNode.MQ.NodeAgent.registerSelf(
+      agent, "hive_exchange", "test_queue", "hive.node.test_node")
     old = struct(HiveNode.MQ.Message.Greet, HiveNode.MQ.NodeAgent.get(agent, hostname))
     assert :ok == HiveNode.MQ.NodeAgent.add(agent, old)
     refute old == HiveNode.MQ.NodeAgent.get(agent, hostname)
@@ -35,6 +37,8 @@ defmodule HiveNodeTest.MQTest.NodeAgentTest do
 
   test "updating an entry", %{agent: agent} do
     {:ok, hostname} = :inet.gethostname
+    HiveNode.MQ.NodeAgent.registerSelf(
+      agent, "hive_exchange", "test_queue", "hive.node.test_node")
     old = struct(HiveNode.MQ.Message.Greet, HiveNode.MQ.NodeAgent.get(agent, hostname))
     assert :ok == HiveNode.MQ.NodeAgent.add(agent, %{old | ip_address: "CHANGED"})
     refute old == HiveNode.MQ.NodeAgent.get(agent, hostname)
