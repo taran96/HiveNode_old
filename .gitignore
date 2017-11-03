@@ -28,3 +28,6 @@ log/
 # Vim
 *.swp
 *.swo
+
+# Environment
+.env
