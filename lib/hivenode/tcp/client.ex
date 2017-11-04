@@ -2,20 +2,24 @@ defmodule HiveNode.TCP.Client do
   use GenServer
   require Logger
 
+  alias HiveNode.TCP
+
   @moduledoc """
   This module is responsible for creating and maintaining a single TCP
   connection.
   """
 
-  def start_link([{:host, host}, {:port, port} | opts] \\ []) do
+  def start_link([{:name, name}, {:host, host}, {:port, port} | opts]) do
     Logger.info "Starting a #{__MODULE__}"
-    GenServer.start_link(__MODULE__, %{host: host, port: port, opts: opts})
+    {:ok, pid} = GenServer.start_link(__MODULE__, %{host: host, port: port, opts: opts})
+    TCP.Agent.add(HiveNode.TCP.Agent, name, pid)
+    {:ok, pid}
   end
 
   def init(%{host: host, port: port, opts: opts} = state) do
     port_num = case port do
       port when is_number(port) -> port
-      port when is_binary(port) -> 
+      port when is_binary(port) ->
         {num, _} = Integer.parse(port)
         num
     end
@@ -60,8 +64,8 @@ defmodule HiveNode.TCP.Client do
     case reason do
       :normal ->
         Logger.info "Shutting down #{__MODULE__}: #{self()}"
-      other -> 
-        Logger.error "Shutting down #{__MODULE__}: #{inspect(self())} 
+      other ->
+        Logger.error "Shutting down #{__MODULE__}: #{inspect(self())}
                       with reason: #{other} \nState: #{inspect(state)}"
     end
     %{socket: socket} = state
