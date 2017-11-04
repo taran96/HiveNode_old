@@ -4,6 +4,7 @@ defmodule HiveNodeTest.MQTest.MessageHandlerTest do
 
   setup do
     HiveNode.MQ.NodeAgent.start_link(name: HiveNode.MQ.NodeAgent)
+    HiveNode.JobServer.start_link(name: HiveNode.JobServer)
     case Process.whereis(HiveNode.JobServer) do
       nil -> HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)
       _ -> :ok

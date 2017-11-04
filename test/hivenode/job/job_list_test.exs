@@ -5,6 +5,7 @@ defmodule HiveNodeTest.JobListTest do
     assert {:ok, "Hello World"} == HiveNode.JobList.echo("Hello", "World")
   end
 
+  @tag :serial_device_required
   test "write to TTY" do
     tty = case Nerves.UART.enumerate |> Map.to_list do
       [{tty, _} | _tail ] -> tty
