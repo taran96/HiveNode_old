@@ -16,7 +16,7 @@ check_for_serial_devices = fn exclude ->
   case Nerves.UART.enumerate |> Map.to_list do
     [{_tty, _} | _tail ] -> exclude
     [] -> [:serial_device_required | exclude]
-    e/home/taran/.emacs.d/assets nd
+  end
 end
 
 exclude = check_for_serial_devices.(exclude)
