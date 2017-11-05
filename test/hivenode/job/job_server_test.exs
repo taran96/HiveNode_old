@@ -2,6 +2,7 @@ defmodule HiveNodeTest.JobServerTest do
   use ExUnit.Case
   setup do 
     HiveNode.JobServerSupervisor.start_link(name: HiveNode.JobServerSupervisor)
+    Process.sleep(100)
     jobServer = Process.whereis(HiveNode.JobServer)
     if Process.whereis(:job_supervisor) == nil do
       Task.Supervisor.start_link(name: :job_supervisor)
@@ -19,6 +20,7 @@ defmodule HiveNodeTest.JobServerTest do
 
   test "test a crashing JobServer with supervisor", %{job_server: server_pid} do
     Process.exit(server_pid, :abnormal)
+    Process.sleep(100)
     refute Process.whereis(HiveNode.JobServer) == nil
   end
 
