@@ -22,4 +22,44 @@ defmodule HiveNodeTest.JobListTest do
     assert {:error, :einval} == HiveNode.JobList.write_to_tty("/dev/tty", "hello")
   end
 
+  @tag :echo_server_required
+  test "connect to new server" do
+    {:ok, agent_pid} = HiveNode.TCP.Agent.start_link(name: HiveNode.TCP.Agent)
+    assert :ok == HiveNode.JobList.connect_to_server(
+      "echo",
+      Application.get_env(:hivenode, :echo_server_host),
+      Application.get_env(:hivenode, :echo_server_port)
+    )
+    Process.exit(agent_pid, :normal)
+  end
+
+  @tag :echo_server_required
+  test "check for server" do
+    start_echo_server()
+    assert true == HiveNode.JobList.check_for_server("echo")
+    Process.whereis(HiveNode.TCP.Agent) |> Process.exit(:normal)
+  end
+
+  @tag :echo_server_required
+  test "sending a message to existing server" do
+    start_echo_server()
+    assert "hello" == HiveNode.JobList.send_to_server("echo", "hello")
+    Process.whereis(HiveNode.TCP.Agent) |> Process.exit(:normal)
+  end
+
+  defp start_echo_server do
+    case Process.whereis(HiveNode.TCP.Agent) do
+      :nil -> HiveNode.TCP.Agent.start_link(name: HiveNode.TCP.Agent)
+      pid -> pid
+    end
+    HiveNode.TCP.Client.start_link(
+      [
+        name: "echo",
+        host: Application.get_env(:hivenode, :echo_server_host),
+        port: Application.get_env(:hivenode, :echo_server_port),
+        active: true,
+        mode: :binary
+      ]
+    )
+  end
 end

@@ -56,7 +56,7 @@ defmodule HiveNode.JobList do
       true -> :already_exists
       false ->
         {status, _} = HiveNode.TCP.Client.start_link(
-          [name: servername, host: host, port: port] ++ [opts]
+          [name: servername, host: host, port: port] ++ opts
         )
         status
     end
@@ -66,7 +66,7 @@ defmodule HiveNode.JobList do
   This function checks if a server with the given name is already registered.
   """
   def check_for_server(servername) do
-    case HiveNode.TCP.Agent.get(servername) do
+    case HiveNode.TCP.Agent.get(HiveNode.TCP.Agent, servername) do
       :notfound -> false
       _ -> true
     end
@@ -77,9 +77,9 @@ defmodule HiveNode.JobList do
   returns an error when the server does not exist.
   """
   def send_to_server(servername, msg) do
-    case HiveNode.TCP.Agent.get(servername) do
+    case HiveNode.TCP.Agent.get(HiveNode.TCP.Agent, servername) do
       :notfound -> {:error, "Server with name #{inspect servername} does not exist"}
-      pid -> HiveNode.TCP.send(pid, msg)
+      pid -> HiveNode.TCP.Client.send_message(pid, msg)
     end
   end
 
